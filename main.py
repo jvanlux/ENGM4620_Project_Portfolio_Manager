@@ -1,5 +1,7 @@
 from portfolio import Portfolio
 from trade_logger import export_trades_to_csv
+from Purchase_sell_amounts import read_and_plot_transactions
+from Portfolio_Distribution import portfolio_Distribution
 
 #testing purposes
 my_portfolio = Portfolio()
@@ -11,3 +13,7 @@ my_portfolio.sell_equity_for_account(tfsa)
 
 # Export trades for the tfsa account
 export_trades_to_csv(tfsa.trades, "my_trades.csv")
+
+read_and_plot_transactions("my_trades.csv")
+
+portfolio_Distribution("my_trades.csv")
