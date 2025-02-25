@@ -1,5 +1,6 @@
 import yfinance as yf
 from datetime import datetime
+from trade_logger import log_trade, export_trades_to_csv
 
 # Base class for all account types
 class Account:
@@ -8,6 +9,7 @@ class Account:
         self.equities = {}
         # Track the total contributions
         self.total_contributions = 0
+        self.trades = []
 
     def buy_equity(self, ticker, purchase_price, quantity, purchase_date):
         """Buy or add an equity to the account."""
@@ -35,6 +37,9 @@ class Account:
             self.equities[ticker] = [purchase_price, quantity, purchase_date]
         print(f"Bought {quantity} shares of {ticker} at {purchase_price} each.")
 
+        log_trade("BUY", ticker, purchase_price, quantity, purchase_date, self.trades)  # Log the trade
+        print(f"Bought {quantity} shares of {ticker} at {purchase_price} each.")
+
     def sell_equity(self, ticker, quantity, sell_price, sell_date):
         """Sell an equity from the account."""
         if ticker in self.equities:
@@ -48,6 +53,10 @@ class Account:
                 else:
                     self.equities[ticker] = [purchase_price, new_qty, purchase_date]
                 print(f"Sold {quantity} shares of {ticker} at {sell_price} each on {sell_date}")
+
+                log_trade("SELL", ticker, sell_price, quantity, sell_date, self.trades)  # Log the trade
+                print(f"Sold {quantity} shares of {ticker} at {sell_price} each on {sell_date}")
+
                 # Successful sale
                 return True
             else:
