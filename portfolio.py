@@ -1,4 +1,5 @@
 import accounts
+from datetime import datetime
 
 # Portfolio class to manage the accounts
 class Portfolio:
@@ -59,18 +60,79 @@ class Portfolio:
     def buy_equity_for_account(self, account):
         """Get user input for buying an equity and execute the buy_equity method."""
         ticker = input("Enter the stock ticker to buy: ")
-        purchase_price = float(input(f"Enter the purchase price for {ticker}: "))
-        quantity = int(input(f"Enter the quantity of {ticker} to buy: "))
-        purchase_date = input(f"Enter the purchase date for {ticker} (YYYY-MM-DD): ")
+
+        # Handle purchase price with error handling
+        while True:
+            try:
+                purchase_price = float(input(f"Enter the purchase price for {ticker}: "))
+                if purchase_price <= 0:
+                    raise ValueError("Price must be greater than zero.")
+                break
+            except ValueError as e:
+                print(f"Invalid input: {e}. Please enter a valid purchase price.")
+
+        # Handle quantity with error handling
+        while True:
+            try:
+                quantity = int(input(f"Enter the quantity of {ticker} to buy: "))
+                if quantity <= 0:
+                    raise ValueError("Quantity must be greater than zero.")
+                break
+            except ValueError as e:
+                print(f"Invalid input: {e}. Please enter a valid quantity.")
+
+        # Handle purchase date with default to today's date if empty
+        purchase_date_input = input(f"Enter the purchase date for {ticker} (YYYY-MM-DD) or press Enter for today: ")
+        if not purchase_date_input:
+            purchase_date = datetime.today().strftime('%Y-%m-%d')  # Use today's date
+        else:
+            try:
+                purchase_date = datetime.strptime(purchase_date_input, '%Y-%m-%d').strftime('%Y-%m-%d')
+            except ValueError:
+                print("Invalid date format. Using today's date.")
+                # Fallback to today if the format is incorrect
+                purchase_date = datetime.today().strftime('%Y-%m-%d')
+
+                # Call buy_equity method on the account object
         account.buy_equity(ticker, purchase_price, quantity, purchase_date)
         print(f"Bought {quantity} shares of {ticker} at {purchase_price} each.")
 
     def sell_equity_for_account(self, account):
         """Get user input for selling an equity and execute the sell_equity method."""
         ticker = input("Enter the stock ticker to sell: ")
-        quantity = int(input(f"Enter the quantity of {ticker} to sell: "))
-        sell_price = float(input(f"Enter the sell price for {ticker}: "))
-        sell_date = input(f"Enter the sell date for {ticker} (YYYY-MM-DD): ")
+
+        # Handle quantity with error handling
+        while True:
+            try:
+                quantity = int(input(f"Enter the quantity of {ticker} to sell: "))
+                if quantity <= 0:
+                    raise ValueError("Quantity must be greater than zero.")
+                break
+            except ValueError as e:
+                print(f"Invalid input: {e}. Please enter a valid quantity.")
+
+        # Handle sell price with error handling
+        while True:
+            try:
+                sell_price = float(input(f"Enter the sell price for {ticker}: "))
+                if sell_price <= 0:
+                    raise ValueError("Sell price must be greater than zero.")
+                break
+            except ValueError as e:
+                print(f"Invalid input: {e}. Please enter a valid sell price.")
+
+        # Handle sell date with default to today's date if empty
+        sell_date_input = input(f"Enter the sell date for {ticker} (YYYY-MM-DD) or press Enter for today: ")
+        if not sell_date_input:
+            sell_date = datetime.today().strftime('%Y-%m-%d')  # Use today's date
+        else:
+            try:
+                sell_date = datetime.strptime(sell_date_input, '%Y-%m-%d').strftime('%Y-%m-%d')
+            except ValueError:
+                print("Invalid date format. Using today's date.")
+                # Fallback to today if the format is incorrect
+                sell_date = datetime.today().strftime('%Y-%m-%d')
+                # Call sell_equity method on the account object
         success = account.sell_equity(ticker, quantity, sell_price, sell_date)
         if success:
             print(f"Successfully sold {quantity} shares of {ticker}.")
