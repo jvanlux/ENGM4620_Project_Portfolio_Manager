@@ -191,3 +191,5 @@ class Portfolio:
             print(f"Successfully sold {quantity} shares of {ticker}.")
         else:
             print(f"Failed to sell {quantity} shares of {ticker}.")
+
+print("test")
