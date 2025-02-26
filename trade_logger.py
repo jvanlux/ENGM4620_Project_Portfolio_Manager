@@ -21,7 +21,7 @@ def export_trades_to_csv(trades, filename="trades.csv"):
     fieldnames = ["Action", "Ticker", "Price", "Quantity", "Date"]
     file_exists = os.path.isfile(filename)
 
-    with open(filename, mode="w", newline="") as file:
+    with open(filename, mode="a", newline="") as file:
         writer = csv.DictWriter(file, fieldnames=fieldnames)
 
         # Write headers only if the file doesn't already exist
