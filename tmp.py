@@ -1,90 +1,71 @@
 import pandas as pd
-import matplotlib.pyplot as plt
-import datetime
 import yfinance as yf
+import datetime
 
 
-def read_and_plot_transactions(csv_file):
+def calculate_portfolio_value(csv_file):
     # Read CSV file
     df = pd.read_csv(csv_file, header=None, names=["Type", "Symbol", "Price", "Shares", "Date"])
     df["Date"] = pd.to_datetime(df["Date"])
+
+    # Sort the transactions by date
     df = df.sort_values(by="Date")
 
     # Initialize variables
-    portfolio = {}  # Store shares of each stock
-    dates = [df["Date"].min()]
-    portfolio_values = [0]  # Portfolio value at the beginning
+    portfolio_values = []
+    current_holdings = {}
 
-    # Process transactions and create portfolio value tracking
-    for _, row in df.iterrows():
-        stock_value = 0
-        if row["Type"] == "BUY":
-            if row["Symbol"] in portfolio:
-                portfolio[row["Symbol"]] += row["Shares"]  # Add shares to the existing stock
-            else:
-                portfolio[row["Symbol"]] = row["Shares"]  # Buy new stock
-        elif row["Type"] == "SELL":
-            if row["Symbol"] in portfolio and portfolio[row["Symbol"]] >= row["Shares"]:
-                portfolio[row["Symbol"]] -= row["Shares"]  # Sell shares of the stock
-            else:
-                print(f"Error: Not enough shares to sell for {row['Symbol']}.")
+    # Get unique stock symbols from the transactions
+    stock_symbols = df["Symbol"].unique()
 
-        # Calculate portfolio value by summing the value of all stocks owned
-        for symbol, shares in portfolio.items():
-            stock_value += shares * row["Price"]  # Add stock value at the current price
-
-        dates.append(row["Date"])
-        portfolio_values.append(stock_value)
-
-    # Extend to today's date with the last available price
-    today = datetime.datetime.today()
-    dates.append(today)
-    portfolio_values.append(stock_value)
-
-    # Get the list of symbols for historical data
-    symbols = list(set(df["Symbol"]))  # Extract unique stock symbols
+    # Fetch stock data (historical close prices) for each symbol
     stock_data = {}
+    for symbol in stock_symbols:
+        stock = yf.Ticker(symbol)
+        historical_data = stock.history(period="1d", start=df["Date"].min(), end=pd.Timestamp.today())
+        stock_data[symbol] = historical_data["Close"]
 
-    # Fetch stock data for each symbol
-    for symbol in symbols:
-        data = yf.download(symbol, start=df["Date"].min(), end=today, progress=False)
-        print(f"Data for {symbol}: {data.columns}")  # Print the columns to debug
+    # Track the amount of stock owned on each date
+    for _, row in df.iterrows():
+        symbol = row["Symbol"]
+        shares = row["Shares"]
 
-        # Check if 'Adj Close' is present, otherwise use 'Close'
-        if 'Adj Close' in data.columns:
-            stock_data[symbol] = data['Adj Close']
-        elif 'Close' in data.columns:
-            stock_data[symbol] = data['Close']
-        else:
-            print(f"Error: No suitable price column found for {symbol}")
+        # Update the number of shares owned for each stock
+        if symbol not in current_holdings:
+            current_holdings[symbol] = 0
+        if row["Type"] == "BUY":
+            current_holdings[symbol] += shares
+        elif row["Type"] == "SELL":
+            current_holdings[symbol] -= shares
 
-    # Plot the portfolio value over time
-    plt.figure(figsize=(12, 6))
-    plt.plot(dates, portfolio_values, drawstyle='steps-post', linestyle='-', color='green', marker='o',
-             label="Portfolio Value")
+    # Get all dates from the first transaction to today's date
+    dates = pd.date_range(start=df["Date"].min(), end=pd.Timestamp.today())
 
-    # Track purchase dates for each stock to only plot after the first purchase
-    for symbol in ["AAPL", "MSFT"]:
-        if symbol in stock_data:
-            stock_resampled = stock_data[symbol].resample('D').ffill()  # Forward fill to match daily data
+    # Calculate portfolio value for each date
+    for date in dates:
+        portfolio_value = 0
+        for symbol, shares in current_holdings.items():
+            if shares > 0 and symbol in stock_data:
+                # Check if the date exists in the stock data index
+                closest_date = stock_data[symbol].index.get_loc(date,
+                                                                method='ffill')  # 'ffill' gets the closest previous date
+                close_price = stock_data[symbol].iloc[closest_date]
+                portfolio_value += shares * close_price
 
-            # Find the first purchase date for the stock
-            purchase_date = df[df["Symbol"] == symbol].iloc[0]["Date"]
-            # Filter the stock data to only plot after the first purchase date
-            stock_resampled_after_purchase = stock_resampled[stock_resampled.index >= purchase_date]
+        # Store the portfolio value and date
+        portfolio_values.append({"Date": date, "Portfolio Value": portfolio_value})
 
-            # Multiply the stock price by the number of shares you own at each date
-            adjusted_value = stock_resampled_after_purchase * portfolio.get(symbol, 0)
-            plt.plot(stock_resampled_after_purchase.index, adjusted_value, label=f"{symbol} Adjusted Value")
+    # Convert the portfolio values to a DataFrame for easy manipulation and visualization
+    portfolio_df = pd.DataFrame(portfolio_values)
 
-    plt.xlabel("Date")
-    plt.ylabel("Value ($)")
-    plt.title("Portfolio Value and Stock Prices Over Time (Adjusted for Shares)")
-    plt.legend()
-    plt.grid(True, linestyle='--', alpha=0.6)
-    plt.show()
+    return portfolio_df
 
 
-# Call the function with the CSV file path
-csv_file = "my_trades.csv"  # Update with the actual path
-read_and_plot_transactions(csv_file)
+# File path to your CSV file
+csv_file = "my_trades.csv"
+
+# Calculate the portfolio values over time
+portfolio_df = calculate_portfolio_value(csv_file)
+
+# Print the portfolio values DataFrame
+print(portfolio_df)
