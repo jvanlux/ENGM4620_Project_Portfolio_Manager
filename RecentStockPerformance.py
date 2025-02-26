@@ -4,7 +4,7 @@ from datetime import datetime
 
 
 def fetch_and_plot_stock(ticker, start_date=None, end_date=None):
-    # If user did not provide custom dates, use predefined ranges
+
     if not start_date or not end_date:
         # Define time ranges
         end_date = datetime.today()
@@ -17,12 +17,13 @@ def fetch_and_plot_stock(ticker, start_date=None, end_date=None):
             '5 Years': end_date.replace(year=end_date.year - 5),
         }
 
-        # Create subplots (2 rows and 2 columns)
+        # Create subplots
         fig, axes = plt.subplots(2, 2, figsize=(14, 10))
-        axes = axes.flatten()  # Flatten the 2D array of axes for easy access
+        axes = axes.flatten()
 
         for i, (label, start_date) in enumerate(start_dates.items()):
             stock_data = yf.download(ticker, start=start_date, end=end_date)
+            print(stock_data)
 
             if stock_data.empty:
                 print(f"No data found for {label}.")
@@ -67,10 +68,8 @@ def get_date_input(prompt):
             print("Invalid date format. Please use YYYY-MM-DD.")
 
 
-# Prompt user for stock ticker
 ticker = input("Enter the stock ticker: ")
 
-# Ask user if they want to use a default range or custom range
 date_option = input(
     "Choose date range:\n1. Default (3 months, 6 months, 1 year, 5 years)\n2. Custom range\nEnter option number: ").strip()
 
