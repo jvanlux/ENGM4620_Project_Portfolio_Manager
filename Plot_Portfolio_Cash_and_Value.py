@@ -5,7 +5,6 @@ from Cashflow_tracking import read_transactions
 from Portfolio_value import portfolio_value
 
 
-
 def plot_combined(csv_file):
     """ Plots both cash balance and total portfolio value on the same graph. """
     cash_df = read_transactions(csv_file)
