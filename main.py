@@ -1,7 +1,6 @@
 from portfolio import Portfolio
 from trade_logger import export_trades_to_csv
 from Cashflow_tracking import read_transactions
-from Portfolio_Distribution import portfolio_Distribution
 
 #testing purposes
 my_portfolio = Portfolio()
