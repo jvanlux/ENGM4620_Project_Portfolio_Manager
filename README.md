@@ -1,6 +1,6 @@
 # ENGM4620_Project_Portfolio_Manager
 
-James McIntosh & John VanLuxemborg
+James McIntosh & John VanLuxemborg \n
 this uses python 3.13
 import csv
 import os
