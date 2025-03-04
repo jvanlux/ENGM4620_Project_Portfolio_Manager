@@ -2,6 +2,10 @@ import pandas as pd
 import datetime
 
 def read_transactions(csv_file):
+    """
+    This function reads in the csv file with all trades to date, and
+    calculates the amount of money invested at every date a new transaction occurs.
+    """
     # Read CSV file
     trades = pd.read_csv(csv_file, header=None, names=["Type", "Symbol", "Price", "Shares", "Date"])
     trades["Date"] = pd.to_datetime(trades["Date"])

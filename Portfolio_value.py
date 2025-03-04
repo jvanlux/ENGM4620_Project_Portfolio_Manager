@@ -77,6 +77,7 @@ def portfolio_value(csv_file):
     # Sort by Date in ascending order
     portfolio_df = portfolio_df.sort_values(by="Date", ascending=True)
 
+    print(portfolio_df)
     # Reset the index after sorting
     portfolio_df.reset_index(drop=True, inplace=True)
 

@@ -2,7 +2,12 @@ import csv
 import os
 
 def log_trade(action, ticker, price, quantity, date, trades):
-    """Log the trade details."""
+    """
+    This function creates a dictionary to store the trade data, showing the Action
+    as BUY or SELL the stock ticker, the trade price, the quanitity of stocks purchased
+    or sold, and the date of the transaction.
+    """
+
     trade = {
         "Action": action,
         "Ticker": ticker,
@@ -12,8 +17,13 @@ def log_trade(action, ticker, price, quantity, date, trades):
     }
     trades.append(trade)
 
+    return trades
+
 def export_trades_to_csv(trades, filename="trades.csv"):
-    """Export trades to a CSV file."""
+    """
+    This takes the output of the function log_trade and outputs each of the trades
+    to a csv file.
+    """
     if not trades:
         print("No trades to export.")
         return
@@ -23,10 +33,6 @@ def export_trades_to_csv(trades, filename="trades.csv"):
 
     with open(filename, mode="a", newline="") as file:
         writer = csv.DictWriter(file, fieldnames=fieldnames)
-
-        # Write headers only if the file doesn't already exist
-        if not file_exists:
-            writer.writeheader()
 
         for trade in trades:
             writer.writerow(trade)
