@@ -31,6 +31,8 @@ def read_transactions(csv_file):
     dates.append(today)
     balances.append(balance)
 
+    print(pd.DataFrame({"Date": dates, "Cash Balance": balances}))
+
     return pd.DataFrame({"Date": dates, "Cash Balance": balances})
 
 # Call the function with the CSV file path
