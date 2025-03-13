@@ -8,7 +8,7 @@ class Portfolio:
     def __init__(self):
         pass
 
-    def new_account(self, type):
+    def new_account(self):
         try:
             if type not in ["FHSA", "TFSA", "RRSP", "Other"]:
                 raise ValueError()

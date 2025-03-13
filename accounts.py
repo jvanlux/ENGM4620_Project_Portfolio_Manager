@@ -1,125 +1,151 @@
 import yfinance as yf
 from datetime import datetime
-from trade_logger import log_trade, export_trades_to_csv
+from trade_logger import log_trade
+import pandas as pd
 
 # Base class for all account types
 class Account:
     def __init__(self):
-        # Dictionary to store stocks: {ticker: [purchase_price, quantity_owned, purchase_date]}
-        self.equities = {}
-        # Track the total contributions
-        self.total_contributions = 0
-        self.trades = []
+        pass
 
-    def buy_equity(self, ticker, purchase_price, quantity, purchase_date):
-        """Buy or add an equity to the account."""
-        total_cost = purchase_price * quantity
-        # Check if the contribution will exceed the contribution limit
-        if hasattr(self, '_contribution_limit') and self._contribution_limit is not None:
-            if self.total_contributions + total_cost > self._contribution_limit:
-                print(f"Warning: Total contributions will exceed the contribution limit of {self._contribution_limit}.")
-                proceed = input("Do you want to proceed with the purchase? (yes/no): ").strip().lower()
-                if proceed != "yes":
-                    print("Purchase cancelled.")
-                    return
+    def buy_equity(self):
+        """Get user input for buying an equity and execute the buy_equity method."""
+        ticker = input("Enter the stock ticker to buy: ")
 
-        # Update the total contributions
-        self.total_contributions += total_cost
-        if ticker in self.equities:
-            # If the stock already exists, update the quantity and average price
-            existing_price, existing_qty, _ = self.equities[ticker]
-            new_qty = existing_qty + quantity
-            # Calculate new average price
-            new_price = ((existing_price * existing_qty) + (purchase_price * quantity)) / new_qty
-            self.equities[ticker] = [new_price, new_qty, purchase_date]
+        # Handle purchase price with error handling
+        while True:
+            try:
+                purchase_price = float(input(f"Enter the purchase price for {ticker}: "))
+                if purchase_price <= 0:
+                    raise ValueError("Price must be greater than zero.")
+                break
+            except ValueError as e:
+                print(f"Invalid input: {e}. Please enter a valid purchase price.")
+
+        # Handle quantity with error handling
+        while True:
+            try:
+                quantity = int(input(f"Enter the quantity of {ticker} to buy: "))
+                if quantity <= 0:
+                    raise ValueError("Quantity must be greater than zero.")
+                break
+            except ValueError as e:
+                print(f"Invalid input: {e}. Please enter a valid quantity.")
+
+        # Handle purchase date with default to today's date if empty
+        purchase_date_input = input(f"Enter the purchase date for {ticker} (YYYY-MM-DD) or press Enter for today: ")
+
+        if not purchase_date_input:
+            purchase_date = datetime.today().strftime('%Y-%m-%d')  # Use today's date
         else:
-            # If the stock does not exist, add it to the dictionary
-            self.equities[ticker] = [purchase_price, quantity, purchase_date]
+            try:
+                purchase_date = datetime.strptime(purchase_date_input, '%Y-%m-%d').strftime('%Y-%m-%d')
+            except ValueError:
+                print("Invalid date format. Using today's date.")
+                # Fallback to today if the format is incorrect
+                purchase_date = datetime.today().strftime('%Y-%m-%d')
+
+        log_trade("BUY", ticker, purchase_price, quantity, purchase_date)
         print(f"Bought {quantity} shares of {ticker} at {purchase_price} each.")
 
-        log_trade("BUY", ticker, purchase_price, quantity, purchase_date, self.trades)  # Log the trade
-        print(f"Bought {quantity} shares of {ticker} at {purchase_price} each.")
+    def sell_equity(self):
+        """Get user input for selling an equity and execute the sell_equity method."""
+        ticker = input("Enter the stock ticker to sell: ")
 
-    def sell_equity(self, ticker, quantity, sell_price, sell_date):
-        """Sell an equity from the account."""
-        if ticker in self.equities:
-            purchase_price, existing_qty, purchase_date = self.equities[ticker]
-            if existing_qty >= quantity:
-                # Update the quantity after selling
-                new_qty = existing_qty - quantity
-                if new_qty == 0:
-                    # Remove the equity if the quantity becomes zero
-                    del self.equities[ticker]
-                else:
-                    self.equities[ticker] = [purchase_price, new_qty, purchase_date]
-                print(f"Sold {quantity} shares of {ticker} at {sell_price} each on {sell_date}")
+        # Handle quantity with error handling
+        while True:
+            try:
+                quantity = int(input(f"Enter the quantity of {ticker} to sell: "))
+                if quantity <= 0:
+                    raise ValueError("Quantity must be greater than zero.")
+                break
+            except ValueError as e:
+                print(f"Invalid input: {e}. Please enter a valid quantity.")
 
-                log_trade("SELL", ticker, sell_price, quantity, sell_date, self.trades)  # Log the trade
-                print(f"Sold {quantity} shares of {ticker} at {sell_price} each on {sell_date}")
+        # Handle sell price with error handling
+        while True:
+            try:
+                sell_price = float(input(f"Enter the sell price for {ticker}: "))
+                if sell_price <= 0:
+                    raise ValueError("Sell price must be greater than zero.")
+                break
+            except ValueError as e:
+                print(f"Invalid input: {e}. Please enter a valid sell price.")
 
-                # Successful sale
-                return True
-            else:
-                print(f"Not enough quantity of {ticker} to sell.")
-                # Not enough quantity to sell
-                return False
+        # Handle sell date with default to today's date if empty
+        sell_date_input = input(f"Enter the sell date for {ticker} (YYYY-MM-DD) or press Enter for today: ")
+        if not sell_date_input:
+            sell_date = datetime.today().strftime('%Y-%m-%d')  # Use today's date
         else:
-            print(f"Equity {ticker} not found in account.")
-            # Equity not found
-            return False
+            try:
+                sell_date = datetime.strptime(sell_date_input, '%Y-%m-%d').strftime('%Y-%m-%d')
+            except ValueError:
+                print("Invalid date format. Using today's date.")
+                # Fallback to today if the format is incorrect
+                sell_date = datetime.today().strftime('%Y-%m-%d')
 
-    def get_value(self):
-        """Calculate the total value of the account."""
-        total_value = 0
-        book_value = 0
-        for ticker, (purchase_price, quantity, _) in self.equities.items():
-            stock = yf.Ticker(ticker)
-            current_price = stock.history(period="1d")["Close"].iloc[-1]
-            total_value += current_price * quantity
-            book_value += quantity * purchase_price
-        return {"Total Value": total_value, "Book Value": book_value}
+        log_trade("SELL", ticker, sell_price, quantity, sell_date)
+        print(f"Sold {quantity} shares of {ticker} at {sell_price} each on {sell_date}")
 
-    def print_holdings(self):
-        """Print the holdings of the account."""
-        if not self.equities:
-            print("No holdings in this account.")
-        else:
-            print("Holdings in the account:")
-            for ticker, (purchase_price, quantity, purchase_date) in self.equities.items():
-                stock = yf.Ticker(ticker)
-                current_price = stock.history(period="1d")["Close"].iloc[-1]
-                print(f"Ticker: {ticker}, Purchase Price: {purchase_price}, Current Price: {current_price}, Quantity: {quantity}, Purchase Date: {purchase_date}")
+    def get_value(self, filename):
+        # Load trades from CSV
+        df = pd.read_csv(filename, header=None, names=["Action", "Symbol", "Price", "Shares", "Date"])
 
-    def update_contribution_limit(self, new_limit):
-        """Update the contribution limit for the account."""
-        if hasattr(self, '_contribution_limit'):
-            self._contribution_limit = new_limit
-            print(f"Contribution limit updated to {new_limit}.")
-        else:
-            print("This account type does not have a contribution limit that can be updated.")
+        # Calculate holdings
+        holdings = {}
+        for _, row in df.iterrows():
+            symbol = row["Symbol"]
+            shares = row["Shares"]
+            action = row["Action"]
 
-# FHSA Account class inheriting from Account
-class FHSA(Account):
-    def __init__(self, contribution_limit):
-        super().__init__()
-        self._contribution_limit = contribution_limit
+            if symbol not in holdings:
+                holdings[symbol] = 0
+
+            if action == "BUY":
+                holdings[symbol] += shares
+            elif action == "SELL":
+                holdings[symbol] -= shares
+
+        # Fetch current stock prices using yfinance
+        current_prices = {}
+        for symbol in holdings.keys():
+            stock = yf.Ticker(symbol)
+            current_prices[symbol] = stock.history(period="1d")["Close"].iloc[-1]
+
+        # Calculate portfolio value
+        portfolio_values = {symbol: shares * current_prices.get(symbol, 0) for symbol, shares in holdings.items()}
+        total_portfolio_value = sum(portfolio_values.values())
+
+        print("Portfolio value:", total_portfolio_value)
+
+    def print_holdings(self, filename):
+        # Load trades from CSV
+        df = pd.read_csv(filename, header=None, names=["Action", "Symbol", "Price", "Shares", "Date"])
+
+        # Calculate holdings
+        holdings = {}
+        for _, row in df.iterrows():
+            symbol = row["Symbol"]
+            shares = row["Shares"]
+            action = row["Action"]
+
+            if symbol not in holdings:
+                holdings[symbol] = 0
+
+            if action == "BUY":
+                holdings[symbol] += shares
+            elif action == "SELL":
+                holdings[symbol] -= shares
+
+        # Fetch current stock prices using yfinance
+        current_prices = {}
+        for symbol in holdings.keys():
+            stock = yf.Ticker(symbol)
+            current_prices[symbol] = stock.history(period="1d")["Close"].iloc[-1]
+
+        # Calculate portfolio value
+        portfolio_values = {symbol: shares * current_prices.get(symbol, 0) for symbol, shares in holdings.items()}
+
+        # print a dataframe that shows ticker, shares, current price, and total value of stock
 
 
-# TFSA Account class inheriting from Account
-class TFSA(Account):
-    def __init__(self, contribution_limit):
-        super().__init__()
-        self._contribution_limit = contribution_limit
-
-
-# RRSP Account class inheriting from Account
-class RRSP(Account):
-    def __init__(self, contribution_limit):
-        super().__init__()
-        self._contribution_limit = contribution_limit
-
-# Other Account class inheriting from Account
-class Other(Account):
-    def __init__(self, contribution_limit=None):
-        super().__init__()
-        self._contribution_limit = contribution_limit

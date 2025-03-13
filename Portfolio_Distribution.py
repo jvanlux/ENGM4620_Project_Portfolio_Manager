@@ -2,7 +2,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import yfinance as yf
 
-
 def portfolio_Distribution(filename):
     """Reads a CSV file of transactions, calculates holdings, fetches live prices,
     and plots a pie chart of the portfolio."""
