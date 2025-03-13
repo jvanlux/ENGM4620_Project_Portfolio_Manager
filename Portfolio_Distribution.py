@@ -50,3 +50,4 @@ def portfolio_Distribution(filename):
     print(f"Total Portfolio Value: ${total_portfolio_value:.2f}")
 
 
+portfolio_Distribution("temp_trades.csv")
