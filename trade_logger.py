@@ -1,8 +1,9 @@
 import csv
-import os
 
-def log_trade(action, ticker, price, quantity, date):
+def log_trade(action, ticker, price, quantity, date, fname):
+    """ This function logs a trade on a csv file."""
 
+    # Dictionary containing BUY/SELL, ticker, action price, quantity, and date
     trade = {
         "Action": action,
         "Ticker": ticker,
@@ -11,15 +12,21 @@ def log_trade(action, ticker, price, quantity, date):
         "Date": date
     }
 
-    filename= "trades.csv"
+    # Generates filename based on account name
+    filename = fname + "_trades.csv"
 
+    # Define print order in csv file
     fieldnames = ["Action", "Ticker", "Price", "Quantity", "Date"]
 
- #   file_exists = os.path.isfile(filename)
+    try:
+        # Append trade to csv file
+        with open(filename, mode="a", newline="") as file:
+            writer = csv.DictWriter(file, fieldnames=fieldnames)
+            writer.writerow(trade)
+        print(f"Trade exported to {filename}.")
 
-    with open(filename, mode="a", newline="") as file:
-        writer = csv.DictWriter(file, fieldnames=fieldnames)
-        writer.writerow(trade)
+    except FileNotFoundError:
+        print("Error: File not found.")
 
-    print(f"Trade exported to {filename}.")
-
+    except Exception as e:
+        print(f"Error: {e}")

@@ -3,6 +3,7 @@ from Portfolio_Distribution import portfolio_Distribution
 
 #testing purposes
 my_account= Account()
-my_account.get_value("trades.csv")
+my_account.buy_equity()
+my_account.get_value()
 
 
