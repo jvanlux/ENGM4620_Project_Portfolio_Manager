@@ -9,5 +9,3 @@ plot_holdings_pie_chart(my_account)
 net_investment(my_account)
 
 portfolio_value(my_account)
-
-plot_combined(my_account)

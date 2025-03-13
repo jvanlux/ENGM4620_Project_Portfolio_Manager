@@ -34,6 +34,7 @@ def net_investment(account):
     calculates the amount of money invested at every date a new transaction occurs.
     """
 
+    # Use  account object to get CSV file name
     csv_file = f"{account.account_name}_trades.csv"
     # Read CSV file
     trades = pd.read_csv(csv_file, header=None, names=["Type", "Symbol", "Price", "Shares", "Date"])
@@ -67,32 +68,34 @@ def net_investment(account):
 
 def portfolio_value(account):
 
-    # Use the account object to get the CSV file name
+    # Use  account object to get CSV file name
     csv_file = f"{account.account_name}_trades.csv"
-    trades = pd.read_csv(csv_file, header=None, names=["Type", "Symbol", "Price", "Shares", "Date"])
 
     # Read the transactions from the CSV file
+    trades = pd.read_csv(csv_file, header=None, names=["Type", "Symbol", "Price", "Shares", "Date"])
 
+    # make sure the dates are in proper datetime format
     trades['Date'] = pd.to_datetime(trades['Date'])
 
+    # Find the unique symbols
     unique_symbols = trades['Symbol'].unique()
 
     all_stock_data = {}
 
-    # Find the first "BUY" transaction date in the entire dataset
+    # Find the first BUY transaction date in the entire dataset
     first_buy_date = trades[trades["Type"] == "BUY"]["Date"].min()
     start_date = first_buy_date
     end_date = pd.to_datetime("today")
 
-    # Download stock price data for each stock
+    # Download stock price data for each stock for each date since first purchase
     for symbol in unique_symbols:
-        stock_df = trades[trades['Symbol'] == symbol]  # Filter transactions for this stock
+        stock_df = trades[trades['Symbol'] == symbol]
         first_buy_date = stock_df[stock_df["Type"] == "BUY"]["Date"].min()
 
         stock_data = yf.download(symbol, start=first_buy_date, end=end_date)
-        all_stock_data[symbol] = stock_data['Close']  # Store only Close prices
+        all_stock_data[symbol] = stock_data['Close']
 
-    # Create a complete date range
+    # Create a list of all dates in date range
     all_dates = pd.date_range(start=start_date, end=end_date, freq='D')
 
     # Dictionary to store portfolio values per date
@@ -100,16 +103,15 @@ def portfolio_value(account):
 
     # Process each stock separately and track its portfolio value
     for symbol in unique_symbols:
-        stock_df = trades[trades['Symbol'] == symbol]  # Filter transactions for this stock
-        close_data = all_stock_data[symbol]  # Get stored close prices
+        close_data = all_stock_data[symbol]
         shares_owned = 0
 
         for date in all_dates:
-            # If stock market data is available for the date, use it
             if date in close_data.index:
                 close_price = close_data.loc[date].item()
             else:
-                continue  # Skip this day if no market data available
+                # Skip day if no market data available ie. weekend/holiday
+                continue
 
             # Update the number of shares owned
             for _, row in stock_df[stock_df['Date'] == date].iterrows():
@@ -136,38 +138,36 @@ def portfolio_value(account):
     portfolio_df.reset_index(inplace=True)
     portfolio_df.rename(columns={'index': 'Date'}, inplace=True)
 
-    # Display the final DataFrame
-    print(portfolio_df)
-
     # Ensure Date column is in datetime format
     portfolio_df["Date"] = pd.to_datetime(portfolio_df["Date"])
 
     # Sort by Date in ascending order
     portfolio_df = portfolio_df.sort_values(by="Date", ascending=True)
 
-    print(portfolio_df)
     # Reset the index after sorting
     portfolio_df.reset_index(drop=True, inplace=True)
 
+    print("This is portfolio_df")
     print(portfolio_df)
 
     return portfolio_df[["Date", "Total Portfolio Value"]]
 
 
 def plot_combined(account):
-    """ Plots both cash balance and total portfolio value on the same graph. """
-    cash_df = net_investment(account)
-    portfolio_df = portfolio_value(account)
+    """ Plots both net investement and total portfolio value on the same graph. """
+    net_investment_df = net_investment(account)
+    portfolio_value_df = portfolio_value(account)
 
-    # Merge both DataFrames on Date
-    merged_df = pd.merge(cash_df, portfolio_df, on="Date", how="outer").fillna(method="ffill")
+    # Merge both DataFrames on Date, .ffill is forward fill of stuff with no data
+    merged_df = pd.merge(net_investment_df, portfolio_value_df, on="Date", how="outer").ffill()
+    print(merged_df)
 
     plt.figure(figsize=(12, 6))
 
-    # Plot Cash Balance
+    # Plot net investement
     plt.plot(merged_df["Date"], merged_df["Cash Balance"], label="Cash Balance", linestyle="-", color="blue")
 
-    # Plot Total Portfolio Value
+    # Plot total portfolio value
     plt.plot(merged_df["Date"], merged_df["Total Portfolio Value"], label="Total Portfolio Value", linestyle="--", color="black")
 
     # Formatting
@@ -178,5 +178,4 @@ def plot_combined(account):
     plt.xticks(rotation=45)
     plt.grid()
 
-    # Show the plot
     plt.show()
