@@ -89,82 +89,95 @@ class Account:
         log_trade("SELL", ticker, sell_price, quantity, sell_date, self.account_name)
         print(f"Sold {quantity} shares of {ticker} at {sell_price} each on {sell_date}")
 
-    def get_value(self):
-        """ Calculate value of portfolio at present date."""
-        # Load trades from CSV
-        filename = self.account_name + "_trades.csv"
 
+    def get_current_price(self, symbol):
+        """Fetch real-time stock prices from yfinance."""
         try:
-            df = pd.read_csv(filename, header=None, names=["Action", "Symbol", "Price", "Shares", "Date"])
-            print("File loaded successfully.")
-        except FileNotFoundError:
-            print(f"Error: The file '{filename}' was not found.")
-        except Exception as e:
-            print(f"An unexpected error occurred: {e}")
-
-        # Calculate holdings
-        holdings = {}
-        for _, row in df.iterrows():
-            symbol = row["Symbol"]
-            shares = row["Shares"]
-            action = row["Action"]
-
-            if symbol not in holdings:
-                holdings[symbol] = 0
-
-            if action == "BUY":
-                holdings[symbol] += shares
-            elif action == "SELL":
-                holdings[symbol] -= shares
-
-        # Fetch current stock prices using yfinance
-        current_prices = {}
-        for symbol in holdings.keys():
             stock = yf.Ticker(symbol)
-            current_prices[symbol] = stock.history(period="1d")["Close"].iloc[-1]
+            return stock.history(period="1d")["Close"].iloc[-1]  # Get last closing price
+        except Exception as e:
+            print(f"Error fetching price for {symbol}: {e}")
+            return 0  # Default to 0 if fetch fails
 
-        # Calculate portfolio value
-        portfolio_values = {symbol: shares * current_prices.get(symbol, 0) for symbol, shares in holdings.items()}
-        total_portfolio_value = sum(portfolio_values.values())
-
-        print(f"Portfolio value: {total_portfolio_value:.2f}")
-
-    def print_holdings(self):
-
-        # Load trades from CSV
+    def load_trades(self):
+        """Load trades from CSV and return a DataFrame."""
         filename = self.account_name + "_trades.csv"
         try:
             df = pd.read_csv(filename, header=None, names=["Action", "Symbol", "Price", "Shares", "Date"])
             print("File loaded successfully.")
+            return df
         except FileNotFoundError:
             print(f"Error: The file '{filename}' was not found.")
         except Exception as e:
             print(f"An unexpected error occurred: {e}")
+        return pd.DataFrame()  # Return empty DataFrame in case of error
 
-        # Calculate holdings
-        holdings = {}
+    def holdings(self):
+        """Generate a summary of holdings with total value and unrealized profit/loss."""
+        df = self.load_trades()
+        if df.empty:
+            return pd.DataFrame()  # Return empty DataFrame if no trades were loaded
+
+        holdings = {}  # Temporary dictionary to track holdings during processing
+
         for _, row in df.iterrows():
             symbol = row["Symbol"]
-            shares = row["Shares"]
             action = row["Action"]
+            price = row["Price"]
+            shares = row["Shares"]
 
             if symbol not in holdings:
-                holdings[symbol] = 0
+                holdings[symbol] = {"total_shares": 0, "total_cost": 0}
 
             if action == "BUY":
-                holdings[symbol] += shares
-            elif action == "SELL":
-                holdings[symbol] -= shares
+                holdings[symbol]["total_shares"] += shares
+                holdings[symbol]["total_cost"] += shares * price
+            elif action == "SELL" and holdings[symbol]["total_shares"] > 0:
+                avg_price = holdings[symbol]["total_cost"] / holdings[symbol]["total_shares"]
+                holdings[symbol]["total_shares"] -= shares
+                holdings[symbol]["total_cost"] -= avg_price * shares
 
-        # Fetch current stock prices using yfinance
-        current_prices = {}
-        for symbol in holdings.keys():
-            stock = yf.Ticker(symbol)
-            current_prices[symbol] = stock.history(period="1d")["Close"].iloc[-1]
+        # Generate summary
+        summary = []
+        for symbol, data in holdings.items():
+            total_shares = data["total_shares"]
 
-        # Calculate portfolio value
-        portfolio_values = {symbol: shares * current_prices.get(symbol, 0) for symbol, shares in holdings.items()}
+            if total_shares > 0:
+                avg_purchase_price = round(data["total_cost"] / total_shares, 2)
+                current_price = round(self.get_current_price(symbol), 2)
+                total_value = round(total_shares * current_price, 2)
+                unrealized_pnl = round(total_value - data["total_cost"], 2)
 
-        # print a dataframe that shows ticker, shares, current price, and total value of stock
+                summary.append([symbol, total_shares, current_price, total_value, avg_purchase_price, unrealized_pnl])
 
+        # Convert to DataFrame
+        summary_df = pd.DataFrame(summary,
+                                  columns=["Symbol", "Total Shares", "Current Price", "Total Value", "Avg Purchase Price",
+                                           "Unrealized P/L"])
+
+        # Add a row for the totals
+        total_value_sum = round(summary_df["Total Value"].sum(), 2)
+        unrealized_pnl_sum = round(summary_df["Unrealized P/L"].sum(), 2)
+
+        summary_df.loc[len(summary_df)] = ["Summary", "-", "-", total_value_sum, "-", unrealized_pnl_sum]
+
+        # Set pandas to display all columns
+        pd.set_option('display.max_columns', None)
+        pd.set_option('display.width', None)
+        pd.set_option('display.max_colwidth', None)
+
+        # Set the Symbol column as the index
+        summary_df.set_index("Symbol", inplace=True)
+
+        # Remove the name of the index ("Symbol")
+        summary_df.rename_axis(None, inplace=True)
+
+        return summary_df
+
+    def print_all_holdings(self):
+        print(self.holdings())
+
+    def print_account_summary(self):
+        df= self.holdings()
+        print(pd.concat([df.head(0), df.tail(1)]))
 
