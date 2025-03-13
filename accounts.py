@@ -11,7 +11,7 @@ class Account:
         """Get user input for buying an equity and log trade."""
 
         # Get purchase ticker
-        ticker = input("Enter the stock ticker to buy: ")
+        ticker = input("Enter the stock ticker to buy: ").strip().upper()
 
         # Get purchase price
         while True:
@@ -52,7 +52,7 @@ class Account:
         """Get user input for selling an equity and execute the sell_equity method."""
 
         # Get sell ticker
-        ticker = input("Enter the stock ticker to sell: ")
+        ticker = input("Enter the stock ticker to sell: ").strip().upper()
 
         # Get sell price
         while True:
@@ -178,6 +178,16 @@ class Account:
         print(self.holdings())
 
     def print_account_summary(self):
-        df= self.holdings()
+        df = self.holdings()
         print(pd.concat([df.head(0), df.tail(1)]))
+
+    def print_specific_holding(self):
+        df = self.holdings()
+        symbol = input("Enter ticker to view data for: ").strip().upper()  # Ensure proper formatting
+        try:
+            print(df.loc[[symbol]].to_string())  # Double brackets keep it as a DataFrame (not Series)
+        except KeyError:
+            print(f"Error: {symbol} not found in holdings.")
+
+
 
