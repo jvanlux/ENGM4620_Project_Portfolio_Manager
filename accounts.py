@@ -5,9 +5,6 @@ import pandas as pd
 import datetime
 import yfinance as yf
 
-
-
-
 class Account:
     def __init__(self):
         self.account_name = input("Enter the account name: ")
@@ -253,9 +250,9 @@ class Account:
         dates.append(today)
         balances.append(balance)
 
-        print(pd.DataFrame({"Date": dates, "Cash Balance": balances}))
+        print(pd.DataFrame({"Date": dates, "Net Investment": balances}))
 
-        return pd.DataFrame({"Date": dates, "Cash Balance": balances})
+        return pd.DataFrame({"Date": dates, "Net Investment": balances})
 
     def portfolio_value(self):
 
@@ -365,7 +362,7 @@ class Account:
         plt.figure(figsize=(12, 6))
 
         # Plot net investement
-        plt.plot(merged_df["Date"], merged_df["Cash Balance"], label="Cash Balance", linestyle="--", color="black")
+        plt.plot(merged_df["Date"], merged_df["Net Investment"], label="Net Investment", linestyle="--", color="black")
 
         # Plot total portfolio value
         plt.plot(merged_df["Date"], merged_df["Total Portfolio Value"], label="Total Portfolio Value", linestyle="-",
@@ -374,7 +371,7 @@ class Account:
         # Formatting
         plt.xlabel("Date")
         plt.ylabel("Value ($)")
-        plt.title("Cash Input vs. Total Portfolio Value Over Time")
+        plt.title("Net Investment vs. Total Portfolio Value Over Time")
         plt.legend()
         plt.xticks(rotation=45)
         plt.grid()
