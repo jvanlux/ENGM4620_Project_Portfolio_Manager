@@ -5,6 +5,9 @@ import pandas as pd
 import datetime
 import yfinance as yf
 
+
+
+
 class Account:
     def __init__(self):
         self.account_name = input("Enter the account name: ")
@@ -191,10 +194,10 @@ class Account:
         except KeyError:
             print(f"Error: {symbol} not found in holdings.")
 
-    @staticmethod
-    def plot_holdings_pie_chart(account):
+
+    def plot_holdings_pie_chart(self):
         """stuff here"""
-        df = account.holdings().drop(index="Summary", errors="ignore")
+        df = self.holdings().drop(index="Summary", errors="ignore")
 
         if df.empty:
             print("No holdings to display.")
@@ -217,3 +220,163 @@ class Account:
         ax.axis("equal")
         plt.show()
 
+    def net_investment(self):
+        """
+        This function reads in the csv file with all trades to date, and
+        calculates the amount of money invested at every date a new transaction occurs.
+        """
+
+        # Use  account object to get CSV file name
+        csv_file = f"{self.account_name}_trades.csv"
+        # Read CSV file
+        trades = pd.read_csv(csv_file, header=None, names=["Type", "Symbol", "Price", "Shares", "Date"])
+        trades["Date"] = pd.to_datetime(trades["Date"])
+        trades = trades.sort_values(by="Date")
+
+        # Initialize variables
+        balance = 0
+        dates = [trades["Date"].min()]
+        balances = [balance]
+
+        # Process transactions
+        for _, row in trades.iterrows():
+            if row["Type"] == "BUY":
+                balance += row["Price"] * row["Shares"]  # Buying increases balance
+            elif row["Type"] == "SELL":
+                balance -= row["Price"] * row["Shares"]  # Selling decreases balance
+
+            dates.append(row["Date"])
+            balances.append(balance)
+
+        # Extend to today's date
+        today = datetime.datetime.today()
+        dates.append(today)
+        balances.append(balance)
+
+        print(pd.DataFrame({"Date": dates, "Cash Balance": balances}))
+
+        return pd.DataFrame({"Date": dates, "Cash Balance": balances})
+
+    def portfolio_value(self):
+
+        # Use  account object to get CSV file name
+        csv_file = f"{self.account_name}_trades.csv"
+
+        # Read the transactions from the CSV file
+        trades = pd.read_csv(csv_file, header=None, names=["Type", "Symbol", "Price", "Shares", "Date"])
+
+        # make sure the dates are in proper datetime format
+        trades['Date'] = pd.to_datetime(trades['Date'])
+
+        # Find the unique symbols
+        unique_symbols = trades['Symbol'].unique()
+
+        all_stock_data = {}
+
+        # Find the first BUY transaction date in the entire dataset
+        first_buy_date = trades[trades["Type"] == "BUY"]["Date"].min()
+        start_date = first_buy_date
+        end_date = pd.to_datetime("today")
+
+        # Download stock price data for each stock for each date since first purchase
+        for symbol in unique_symbols:
+            stock_df = trades[trades['Symbol'] == symbol]
+            first_buy_date = stock_df[stock_df["Type"] == "BUY"]["Date"].min()
+
+            stock_data = yf.download(symbol, start=first_buy_date, end=end_date)
+            all_stock_data[symbol] = stock_data['Close']
+
+        # Create a list of all dates in date range
+        all_dates = pd.date_range(start=start_date, end=end_date, freq='D')
+
+        # Dictionary to store portfolio values per date
+        portfolio_data = {}
+
+        # Process each stock separately and track its portfolio value
+        # Process each stock separately and track its portfolio value
+        for symbol in unique_symbols:
+            stock_df = trades[trades['Symbol'] == symbol]  # Filter trades for current stock
+            close_data = all_stock_data[symbol]
+            shares_owned = 0
+
+            # Sort the transactions by date so we handle them in chronological order
+            stock_df = stock_df.sort_values(by="Date")
+
+            last_known_value = 0
+            for date in all_dates:
+                # If stock market data for the current date is available, use it
+                if date in close_data.index:
+                    close_price = close_data.loc[date].item()
+                else:
+                    # If no data for that date ie. weekend, holiday
+                    close_price = last_known_value
+
+                # If there was a trade on this date, update shares_owned
+                stock_on_date = stock_df[stock_df['Date'] == date]
+                for _, row in stock_on_date.iterrows():
+                    if row["Type"] == "BUY":
+                        shares_owned += row["Shares"]
+                    elif row["Type"] == "SELL":
+                        shares_owned -= row["Shares"]
+
+                # Store the portfolio value per stock per date
+                portfolio_value = shares_owned * close_price
+
+                if date not in portfolio_data:
+                    portfolio_data[date] = {}
+                portfolio_data[date][symbol] = portfolio_value
+
+                # Update last_known_value for future dates
+                last_known_value = close_price if shares_owned > 0 else 0
+
+        # Convert the portfolio dictionary into a DataFrame
+        portfolio_df = pd.DataFrame.from_dict(portfolio_data, orient='index').fillna(0)
+
+        # Add a column for total portfolio value
+        portfolio_df["Total Portfolio Value"] = portfolio_df.sum(axis=1)
+
+        # Reset index and rename columns
+        portfolio_df.reset_index(inplace=True)
+        portfolio_df.rename(columns={'index': 'Date'}, inplace=True)
+
+        # Ensure Date column is in datetime format
+        portfolio_df["Date"] = pd.to_datetime(portfolio_df["Date"])
+
+        # Sort by Date in ascending order
+        portfolio_df = portfolio_df.sort_values(by="Date", ascending=True)
+
+        # Reset the index after sorting
+        portfolio_df.reset_index(drop=True, inplace=True)
+
+        print("This is portfolio_df")
+        print(portfolio_df)
+
+        return portfolio_df[["Date", "Total Portfolio Value"]]
+
+    def plot_combined(self):
+        """ Plots both net investement and total portfolio value on the same graph. """
+        net_investment_df = self.net_investment()
+        portfolio_value_df = self.portfolio_value()
+
+        # Merge both DataFrames on Date, .ffill is forward fill of stuff with no data
+        merged_df = pd.merge(net_investment_df, portfolio_value_df, on="Date", how="outer").ffill()
+        print(merged_df)
+
+        plt.figure(figsize=(12, 6))
+
+        # Plot net investement
+        plt.plot(merged_df["Date"], merged_df["Cash Balance"], label="Cash Balance", linestyle="--", color="black")
+
+        # Plot total portfolio value
+        plt.plot(merged_df["Date"], merged_df["Total Portfolio Value"], label="Total Portfolio Value", linestyle="-",
+                 color="blue")
+
+        # Formatting
+        plt.xlabel("Date")
+        plt.ylabel("Value ($)")
+        plt.title("Cash Input vs. Total Portfolio Value Over Time")
+        plt.legend()
+        plt.xticks(rotation=45)
+        plt.grid()
+
+        plt.show()
