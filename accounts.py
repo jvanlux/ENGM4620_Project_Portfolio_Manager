@@ -57,7 +57,7 @@ class Account:
                 print(f"Invalid input: {e} Please enter a valid quantity.")
 
         # Purchase date is always today's date
-        purchase_date = datetime.today().strftime('%Y-%m-%d')
+        purchase_date = datetime.datetime.today().strftime('%Y-%m-%d')
 
         log_trade("BUY", ticker, purchase_price, quantity, purchase_date, self.account_name)
         print(f"Bought {quantity} shares of {ticker} at {purchase_price} each.")
@@ -91,14 +91,14 @@ class Account:
         # Get purchase date
         purchase_date_input = input(f"Enter the purchase date for {ticker} (YYYY-MM-DD) or press Enter for today: ")
         if not purchase_date_input:
-            purchase_date = datetime.today().strftime('%Y-%m-%d')
+            purchase_date = datetime.datetime.today().strftime('%Y-%m-%d')
         else:
             try:
-                purchase_date = datetime.strptime(purchase_date_input, '%Y-%m-%d').strftime('%Y-%m-%d')
+                purchase_date = datetime.datetime.strptime(purchase_date_input, '%Y-%m-%d').strftime('%Y-%m-%d')
             except ValueError:
                 print("Invalid date format. Using today's date.")
                 # Fallback to today if the format is incorrect
-                purchase_date = datetime.today().strftime('%Y-%m-%d')
+                purchase_date = datetime.datetime.today().strftime('%Y-%m-%d')
 
         log_trade("BUY", ticker, purchase_price, quantity, purchase_date, self.account_name)
         print(f"Bought {quantity} shares of {ticker} at {purchase_price} each.")
@@ -132,14 +132,14 @@ class Account:
         # Get sell date
         sell_date_input = input(f"Enter the sell date for {ticker} (YYYY-MM-DD) or press Enter for today: ")
         if not sell_date_input:
-            sell_date = datetime.today().strftime('%Y-%m-%d')
+            sell_date = datetime.datetime.today().strftime('%Y-%m-%d')
         else:
             try:
-                sell_date = datetime.strptime(sell_date_input, '%Y-%m-%d').strftime('%Y-%m-%d')
+                sell_date = datetime.datetime.strptime(sell_date_input, '%Y-%m-%d').strftime('%Y-%m-%d')
             except ValueError:
                 print("Invalid date format. Using today's date.")
                 # Fallback to today if the format is incorrect
-                sell_date = datetime.today().strftime('%Y-%m-%d')
+                sell_date = datetime.datetime.today().strftime('%Y-%m-%d')
 
         log_trade("SELL", ticker, sell_price, quantity, sell_date, self.account_name)
         print(f"Sold {quantity} shares of {ticker} at {sell_price} each on {sell_date}")
@@ -325,8 +325,6 @@ class Account:
         dates.append(today)
         balances.append(balance)
 
-        print(pd.DataFrame({"Date": dates, "Net Investment": balances}))
-
         return pd.DataFrame({"Date": dates, "Net Investment": balances})
 
     def portfolio_value(self):
@@ -419,9 +417,6 @@ class Account:
         # Reset the index after sorting
         portfolio_df.reset_index(drop=True, inplace=True)
 
-        print("This is portfolio_df")
-        print(portfolio_df)
-
         return portfolio_df[["Date", "Total Portfolio Value"]]
 
     def plot_combined(self):
@@ -431,7 +426,6 @@ class Account:
 
         # Merge both DataFrames on Date, .ffill is forward fill of stuff with no data
         merged_df = pd.merge(net_investment_df, portfolio_value_df, on="Date", how="outer").ffill()
-        print(merged_df)
 
         plt.figure(figsize=(12, 6))
 
