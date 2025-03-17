@@ -435,6 +435,8 @@ class Account:
         # Merge both DataFrames on Date, .ffill is forward fill of stuff with no data
         merged_df = pd.merge(net_investment_df, portfolio_value_df, on="Date", how="outer").ffill()
 
+        plt.ion()
+
         plt.figure(figsize=(12, 6))
 
         # Plot net investement
