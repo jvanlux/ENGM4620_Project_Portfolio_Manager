@@ -275,6 +275,8 @@ class Account:
 
     def plot_holdings_pie_chart(self):
         """stuff here"""
+
+        plt.ion()
         df = self.holdings().drop(index="Summary", errors="ignore")
 
         if df.empty:
