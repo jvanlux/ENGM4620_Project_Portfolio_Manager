@@ -7,7 +7,60 @@ import yfinance as yf
 
 class Account:
     def __init__(self):
-        self.account_name = input("Enter the account name: ")
+        self.account_name = input("Enter your account name. \n"
+                                  "If it exists, it will be loaded; otherwise, a new account will be created.\n"
+                                  "Account name: ").strip()
+
+    def buy_sell(self):
+        """Get yser input and call on buy_equity or sell_equity"""
+
+        while True:
+
+            response = input('Do you want to "Buy", "Sell", or "Exit"? ').strip().upper()
+
+            if response == 'BUY':
+                self.buy_equity()
+
+            elif response == 'SELL':
+                self.sell_equity()
+
+            elif response == 'EXIT':
+                break
+
+            else:
+                print('Invalid input. Please try again.')
+
+    def bulk_import(self):
+        """ PUT STUFF HERE"""
+
+        # Get purchase ticker
+        ticker = input("Enter the stock ticker to buy: ").strip().upper()
+
+        # Get purchase price
+        while True:
+            try:
+                purchase_price = float(input(f"Enter the average purchase price for {ticker}: "))
+                if purchase_price <= 0:
+                    raise ValueError("Price must be greater than zero.")
+                break
+            except ValueError as e:
+                print(f"Invalid input: {e} Please enter a valid purchase price.")
+
+        # Get quantity of shares purchased
+        while True:
+            try:
+                quantity = int(input(f"Enter the quantity of {ticker} to buy: "))
+                if quantity <= 0:
+                    raise ValueError("Quantity must be greater than zero.")
+                break
+            except ValueError as e:
+                print(f"Invalid input: {e} Please enter a valid quantity.")
+
+        # Purchase date is always today's date
+        purchase_date = datetime.today().strftime('%Y-%m-%d')
+
+        log_trade("BUY", ticker, purchase_price, quantity, purchase_date, self.account_name)
+        print(f"Bought {quantity} shares of {ticker} at {purchase_price} each.")
 
     def buy_equity(self):
         """Get user input for buying an equity and log trade."""
@@ -176,6 +229,28 @@ class Account:
 
         return summary_df
 
+    def display_account_holdings(self):
+        """Get yser input and print account holdings information accordingly."""
+
+        while True:
+
+            response = input('Do you want to display "All", "Summary", "Single", or "Exit"? ').strip().upper()
+
+            if response == 'ALL':
+                self.print_all_holdings()
+
+            elif response == 'SUMMARY':
+                self.print_account_summary()
+
+            elif response == 'SINGLE':
+                self.print_specific_holding()
+
+            elif response == 'EXIT':
+                break
+
+            else:
+                print('Invalid input. Please try again.')
+
     def print_all_holdings(self):
         print(self.holdings())
 
@@ -289,7 +364,6 @@ class Account:
         # Dictionary to store portfolio values per date
         portfolio_data = {}
 
-        # Process each stock separately and track its portfolio value
         # Process each stock separately and track its portfolio value
         for symbol in unique_symbols:
             stock_df = trades[trades['Symbol'] == symbol]  # Filter trades for current stock
