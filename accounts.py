@@ -237,13 +237,19 @@ class Account:
             response = input('Do you want to display "All", "Summary", "Single", or "Exit"? ').strip().upper()
 
             if response == 'ALL':
+                print("\n")
                 self.print_all_holdings()
+                print("\n")
 
             elif response == 'SUMMARY':
+                print("\n")
                 self.print_account_summary()
+                print("\n")
 
             elif response == 'SINGLE':
+                print("\n")
                 self.print_specific_holding()
+                print("\n")
 
             elif response == 'EXIT':
                 break
