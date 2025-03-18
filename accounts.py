@@ -84,6 +84,8 @@ class Account:
                 quantity = int(input(f"Enter the quantity of {ticker} to buy: "))
                 if quantity <= 0:
                     raise ValueError("Quantity must be greater than zero.")
+                elif not isinstance(quantity, int):
+                    raise ValueError("You must enter a whole number.")
                 break
             except ValueError as e:
                 print(f"Invalid input: {e} Please enter a valid quantity.")
