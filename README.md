@@ -88,16 +88,6 @@ Please enter your selection: 4
 Displaying portfolio holdings in a pie chart...
 ```
 
-## CSV Format
-
-The program saves all transactions in a CSV file with the following format:
-
-```
-Action, Symbol, Price, Shares, Date
-BUY, AAPL, 150.50, 10, 2025-03-19
-SELL, AAPL, 160.00, 5, 2025-03-20
-```
-
 ## Troubleshooting
 
 - **Issue**: "The file 'account_name_trades.csv' was not found."  
