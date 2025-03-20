@@ -1,56 +1,100 @@
-# ENGM4620 Project: Portfolio Manager
+# Portfolio Management Tool
 
-## Authors
-James McIntosh & John VanLuxemborg
+### James McIntosh & John VanLuxemborg
 
-## Python Version
-This project uses **Python 3.13**.
+## Overview
 
-## Required Packages
-Ensure you have the following packages installed before running the project:
-```python
-import csv
-import os
-import yfinance as yf
-import pandas as pd
-import datetime
-import matplotlib.pyplot as plt
+The Portfolio Management Tool is designed to help users track their stock trades, manage a portfolio, and visualize performance over time. It provides functionality for buying, selling, and tracking equities, generating portfolio summaries, displaying holdings, and visualizing account performance. It also includes a variety of analysis tools such as plotting portfolio value trends and creating pie charts for holdings distribution.
+
+## Features
+
+1. **Create or Load an Account**  
+   Allows you to create a new account or load an existing account that has been saved locally by providing the account name.
+
+2. **Buy or Sell Equities**  
+   Lets you execute buy or sell transactions for stocks, by entering relevant details such as ticker, price, quantity, and date.
+
+3. **Bulk Import Equities**  
+   Facilitates importing a large number of stock transactions into the portfolio at an average purchase price if the user is not interested in past portfolio trends.
+
+4. **Pie Chart Holdings**  
+   Visualizes the distribution of your holdings in a pie chart.
+
+5. **Account Balance Trend Plot**  
+   Displays a line graph comparing net investment and total portfolio value over time.
+
+6. **Display Account Holdings**  
+   Allows you to view all your stock holdings in your portfolio, look at specific stocks, or look at a summary of all holdings.
+
+7. **Track Performance Over Time**  
+   The program calculates unrealized profits and losses (P/L) and allows you to track how your portfolio value evolves.
+
+## Requirements
+
+
+## How to Use
+
+### 1. Running the Program
+To run the program, simply execute the Python script:
+
+```
+python main.py
 ```
 
-## Functionality
-This project is designed to help users manage their investment portfolios. Currently, `main.py` serves as a testing platform while a GUI is under development.
+The program will guide you through the options available.
 
-### Portfolio & Accounts
-- A **Portfolio** object can be created using `Portfolio()`.
-- Multiple accounts can be held within a portfolio, including:
-  - FHSA
-  - TFSA
-  - RRSP
-  - Other
-- An account must be initialized before usage.
+### 2. Creating or Loading an Account
+- Upon running the program, you will be prompted to enter an account name. If the account exists, it will be loaded; if it doesn't, a new account will be created.
 
-### Trading Functions
-- **Buying & Selling Equities**:
-  - `.buy_equity_for_account(account_name)` - Buys an equity for a specific account.
-  - `.sell_equity_for_account(account_name)` - Sells an equity for a specific account.
-  - Trades are recorded in a dictionary.
-- **Exporting Trades**:
-  - `export_trades_to_csv()` exports all trades into a CSV file.
+### 3. Buying or Selling Equities
+- You can buy or sell stocks using the options available in the main menu. You'll be asked for the stock ticker, price, quantity, and date.
+- The transaction will be logged in a CSV file, where all trades will be saved.
 
-### Visualization & Analysis
-- **Portfolio Value & Cash Flow**:
-  - `Plot_Portfolio_Cash_and_Value.py` reads transaction data and generates a line plot showing:
-    - The value of holdings over time.
-    - The total amount invested.
-- **Portfolio Distribution**:
-  - `PortfolioDistribution.py` creates a **pie chart** of the current holdings and their values.
-- **Recent Stock Performance**:
-  - `RecentStockPerformance.py` plots recent stock performance based on a user-defined date range and stock ticker.
+### 4. Bulk Import
+- This option allows you to import stock purchases in bulk, specifying ticker, average purchase price, and quantity.
 
-## Usage
-Run `main.py` to begin testing portfolio functionality. More detailed GUI-based interaction is in development.
+### 5. Plotting Portfolio Information
+- **Holdings Pie Chart**: Displays a pie chart showing the distribution of your portfolio across different stocks.
+- **Account Balance Trend**: Shows a plot comparing the trend of net investments and total portfolio value over time.
 
----
-This project is a work in progress, and additional features will be added over time.
+### 6. Display Holdings
+You can display:
+- **All Holdings**: Displays a table with all your stocks, quantities, current prices, total value, average purchase price, and unrealized P/L.
+- **Summary**: Shows only a summarized row of your total portfolio.
+- **Specific Holding**: Lets you search for a specific stock and see its performance.
 
+## Example of User Interaction
+
+```
+python main.py
+
+Please enter your selection: 1
+Enter your account name: MyPortfolio
+
+Please enter your selection: 2
+Do you want to "Buy", "Sell", or "Exit"? BUY
+Enter the stock ticker to buy: AAPL
+Enter the purchase price for AAPL: 150.50
+Enter the quantity of AAPL to buy: 10
+Enter the purchase date for AAPL (YYYY-MM-DD) or press Enter for today: 2025-03-19
+Bought 10 shares of AAPL at 150.50 each.
+
+Please enter your selection: 4
+Displaying portfolio holdings in a pie chart...
+```
+
+## CSV Format
+
+The program saves all transactions in a CSV file with the following format:
+
+```
+Action, Symbol, Price, Shares, Date
+BUY, AAPL, 150.50, 10, 2025-03-19
+SELL, AAPL, 160.00, 5, 2025-03-20
+```
+
+## Troubleshooting
+
+- **Issue**: "The file 'account_name_trades.csv' was not found."  
+  **Solution**: Ensure you have logged a transaction first (buy or sell) before attempting to load trades.
 
