@@ -20,9 +20,11 @@ def main():
     {Fore.LIGHTGREEN_EX}========================================================================
     {Style.RESET_ALL}"""
     print(header)
+    program_Info = "Write some important info here about the code and an introduction to it \n \n"
 
+    print(program_Info)
 
-    print(" 1: Create/Load Account \n 2: Buy or Sell Equities \n 3: Bulk Equity Import \n 4: Plot Pie Chart Holdings"
+    print(" Please select from the following list of options: \n 1: Create/Load Account \n 2: Buy or Sell Equities \n 3: Bulk Equity Import \n 4: Plot Pie Chart Holdings"
           "\n 5: Plot Account Balance Trend \n 6: Display Account Holdings \n 7: Print Options \n 8: Exit Program")
 
     while True:
