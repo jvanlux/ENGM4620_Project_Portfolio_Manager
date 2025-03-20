@@ -20,7 +20,7 @@ def main():
     {Fore.LIGHTGREEN_EX}Developed by: James McIntosh (B00833105) & John VanLuxemborg (B00892614)
     
     {Fore.LIGHTGREEN_EX}      For more information please see the Github repository here
-         https://github.com/jvanlux/ENGM4620_Project_Portfolio_Manager
+         https://github.com/jvanlux/ENGM4620_Project_Portfolio_Manager 
     
     {Fore.LIGHTGREEN_EX}========================================================================
     {Style.RESET_ALL}"""
