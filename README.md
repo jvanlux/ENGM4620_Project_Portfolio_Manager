@@ -30,7 +30,12 @@ The Portfolio Management Tool is designed to help users track their stock trades
    The program calculates unrealized profits and losses (P/L) and allows you to track how your portfolio value evolves.
 
 ## Requirements
-
+```
+﻿matplotlib~=3.10.0
+pandas~=2.2.3
+yfinance~=0.2.54
+colorama~=0.4.6
+```
 
 ## How to Use
 
