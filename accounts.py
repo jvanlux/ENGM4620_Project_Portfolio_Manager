@@ -439,7 +439,7 @@ class Account:
 
         plt.ion()
 
-        plt.figure(figsize=(12, 6))
+        plt.figure(figsize=(10, 6))  # Adjust these values if needed
 
         # Plot net investement
         plt.plot(merged_df["Date"], merged_df["Net Investment"], label="Net Investment", linestyle="--", color="black")
