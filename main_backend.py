@@ -15,17 +15,19 @@ def main():
     ██║ ╚═╝ ██║███████╗╚██████╗██║  ██║         ██║╚██████╔╝███████╗╚██████╔╝
     ╚═╝     ╚═╝╚══════╝ ╚═════╝╚═╝  ╚═╝         ╚═╝ ╚═════╝ ╚══════╝ ╚═════╝                                                                    
     {Fore.LIGHTGREEN_EX}========================================================================
+    
     {Fore.LIGHTGREEN_EX}                      PORTFOLIO MANAGEMENT TOOL
     {Fore.LIGHTGREEN_EX}Developed by: James McIntosh (B00833105) & John VanLuxemborg (B00892614)
+    
+    {Fore.LIGHTGREEN_EX}      For more information please see the Github repository here
+         https://github.com/jvanlux/ENGM4620_Project_Portfolio_Manager
+    
     {Fore.LIGHTGREEN_EX}========================================================================
     {Style.RESET_ALL}"""
     print(header)
-    program_Info = "Write some important info here about the code and an introduction to it \n \n"
 
-    print(program_Info)
-
-    print(" Please select from the following list of options: \n 1: Create/Load Account \n 2: Buy or Sell Equities \n 3: Bulk Equity Import \n 4: Plot Pie Chart Holdings"
-          "\n 5: Plot Account Balance Trend \n 6: Display Account Holdings \n 7: Print Options \n 8: Exit Program")
+    print("Please select from the following list of options: \n1: Create/Load Account \n2: Buy or Sell Equities \n3: Bulk Equity Import \n4: Plot Pie Chart Holdings"
+          "\n5: Plot Account Balance Trend \n6: Display Account Holdings \n7: Print Options \n8: Exit Program")
 
     while True:
 
