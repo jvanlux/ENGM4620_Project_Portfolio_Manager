@@ -278,6 +278,8 @@ class Account:
     def plot_holdings_pie_chart(self):
         """stuff here"""
 
+        print("Loading your plot...")
+
         plt.ion()
         df = self.holdings().drop(index="Summary", errors="ignore")
 
@@ -431,6 +433,9 @@ class Account:
 
     def plot_combined(self):
         """ Plots both net investement and total portfolio value on the same graph. """
+
+        print("Loading your plot...")
+
         net_investment_df = self.net_investment()
         portfolio_value_df = self.portfolio_value()
 
