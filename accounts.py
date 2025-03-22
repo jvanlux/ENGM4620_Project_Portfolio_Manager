@@ -268,9 +268,9 @@ class Account:
 
     def print_specific_holding(self):
         df = self.holdings()
-        symbol = input("Enter ticker to view data for: ").strip().upper()  # Ensure proper formatting
+        symbol = input("Enter ticker to view data for: ").strip().upper()
         try:
-            print(df.loc[[symbol]].to_string())  # Double brackets keep it as a DataFrame (not Series)
+            print(df.loc[[symbol]].to_string())
         except KeyError:
             print(f"Error: {symbol} not found in holdings.")
 
