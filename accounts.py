@@ -145,18 +145,6 @@ class Account:
         log_trade("SELL", ticker, sell_price, quantity, sell_date, self.account_name)
         print(f"Sold {quantity} shares of {ticker} at {sell_price} each on {sell_date}")
 
-
-    def get_current_price(self, symbol):
-        """Fetch real-time stock prices from yfinance."""
-
-        # Get current price using yfinance api
-        try:
-            stock = yf.Ticker(symbol)
-            return stock.history(period="1d")["Close"].iloc[-1]
-        except Exception as e:
-            print(f"Error fetching price for {symbol}: {e}")
-            return 0  # Default to 0 if fetch fails
-
     def load_trades(self):
         """Load trades from CSV and return a DataFrame."""
 
@@ -472,3 +460,16 @@ class Account:
         plt.grid()
 
         plt.show()
+
+    @staticmethod
+    def get_current_price(symbol):
+        """Fetch real-time stock prices from yfinance."""
+
+        # Get current price using yfinance API
+
+        try:
+            stock = yf.Ticker(symbol)
+            return stock.history(period="1d")["Close"].iloc[-1]
+        except Exception as e:
+            print(f"Error fetching price for {symbol}: {e}")
+            return 0
