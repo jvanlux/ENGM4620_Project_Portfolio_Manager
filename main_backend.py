@@ -2,6 +2,7 @@ from accounts import Account
 from colorama import Fore, Style, init
 
 def main():
+    """Console controlling user interface"""
 
     # Initialize
     account_loaded = False

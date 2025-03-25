@@ -18,9 +18,9 @@ def log_trade(action, ticker, price, quantity, date, fname):
     # Define print order in csv file
     fieldnames = ["Action", "Ticker", "Price", "Quantity", "Date"]
 
+    # Append trade to csv file
     try:
-        # Append trade to csv file
-        with open(filename, mode="a", newline="") as file:
+        with open(filename, mode = "a", newline="") as file:
             writer = csv.DictWriter(file, fieldnames=fieldnames)
             writer.writerow(trade)
         print(f"Trade exported to {filename}.")

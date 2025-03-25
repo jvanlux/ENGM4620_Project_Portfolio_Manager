@@ -5,33 +5,31 @@ import pandas as pd
 import datetime
 import yfinance as yf
 
+# Main class for portfolio
 class Account:
     def __init__(self):
+        """Initialize class instance with account name."""
+
         self.account_name = input("Enter your account name. \n"
                                   "If it exists, it will be loaded; otherwise, a new account will be created.\n"
                                   "Account name: ").strip()
 
     def buy_sell(self):
-        """Get yser input and call on buy_equity or sell_equity"""
+        """Get user input and call on buy_equity or sell_equity."""
 
         while True:
-
             response = input('Do you want to "Buy", "Sell", or "Exit"? ').strip().upper()
-
             if response == 'BUY':
                 self.buy_equity()
-
             elif response == 'SELL':
                 self.sell_equity()
-
             elif response == 'EXIT':
                 break
-
             else:
                 print('Invalid input. Please try again.')
 
     def bulk_import(self):
-        """ PUT STUFF HERE"""
+        """Allows for mass importation of current holdings via average purchase price."""
 
         # Get purchase ticker
         ticker = input("Enter the stock ticker to buy: ").strip().upper()
@@ -49,7 +47,7 @@ class Account:
         # Get quantity of shares purchased
         while True:
             try:
-                quantity = int(input(f"Enter the quantity of {ticker} to buy: "))
+                quantity = float(input(f"Enter the quantity of {ticker} to buy: "))
                 if quantity <= 0:
                     raise ValueError("Quantity must be greater than zero.")
                 break
@@ -59,6 +57,7 @@ class Account:
         # Purchase date is always today's date
         purchase_date = datetime.datetime.today().strftime('%Y-%m-%d')
 
+        # Log trade to .csv file
         log_trade("BUY", ticker, purchase_price, quantity, purchase_date, self.account_name)
         print(f"Bought {quantity} shares of {ticker} at {purchase_price} each.")
 
@@ -81,11 +80,9 @@ class Account:
         # Get quantity of shares purchased
         while True:
             try:
-                quantity = int(input(f"Enter the quantity of {ticker} to buy: "))
+                quantity = float(input(f"Enter the quantity of {ticker} to buy: "))
                 if quantity <= 0:
                     raise ValueError("Quantity must be greater than zero.")
-                elif not isinstance(quantity, int):
-                    raise ValueError("You must enter a whole number.")
                 break
             except ValueError as e:
                 print(f"Invalid input: {e} Please enter a valid quantity.")
@@ -102,6 +99,7 @@ class Account:
                 # Fallback to today if the format is incorrect
                 purchase_date = datetime.datetime.today().strftime('%Y-%m-%d')
 
+        # Log trade to .csv file
         log_trade("BUY", ticker, purchase_price, quantity, purchase_date, self.account_name)
         print(f"Bought {quantity} shares of {ticker} at {purchase_price} each.")
 
@@ -124,7 +122,7 @@ class Account:
         # Get quantity to sell
         while True:
             try:
-                quantity = int(input(f"Enter the quantity of {ticker} to sell: "))
+                quantity = float(input(f"Enter the quantity of {ticker} to sell: "))
                 if quantity <= 0:
                     raise ValueError("Quantity must be greater than zero.")
                 break
@@ -143,22 +141,28 @@ class Account:
                 # Fallback to today if the format is incorrect
                 sell_date = datetime.datetime.today().strftime('%Y-%m-%d')
 
+        # Log trade to .csv file
         log_trade("SELL", ticker, sell_price, quantity, sell_date, self.account_name)
         print(f"Sold {quantity} shares of {ticker} at {sell_price} each on {sell_date}")
 
 
     def get_current_price(self, symbol):
         """Fetch real-time stock prices from yfinance."""
+
+        # Get current price using yfinance api
         try:
             stock = yf.Ticker(symbol)
-            return stock.history(period="1d")["Close"].iloc[-1]  # Get last closing price
+            return stock.history(period="1d")["Close"].iloc[-1]
         except Exception as e:
             print(f"Error fetching price for {symbol}: {e}")
             return 0  # Default to 0 if fetch fails
 
     def load_trades(self):
         """Load trades from CSV and return a DataFrame."""
+
         filename = self.account_name + "_trades.csv"
+
+        # Read in .csv file, define headers
         try:
             df = pd.read_csv(filename, header=None, names=["Action", "Symbol", "Price", "Shares", "Date"])
             print("File loaded successfully.")
@@ -167,16 +171,19 @@ class Account:
             print(f"Error: The file '{filename}' was not found.")
         except Exception as e:
             print(f"An unexpected error occurred: {e}")
-        return pd.DataFrame()  # Return empty DataFrame in case of error
+        return pd.DataFrame()
 
     def holdings(self):
         """Generate a summary of holdings with total value and unrealized profit/loss."""
+
         df = self.load_trades()
         if df.empty:
-            return pd.DataFrame()  # Return empty DataFrame if no trades were loaded
+            return pd.DataFrame()
 
-        holdings = {}  # Temporary dictionary to track holdings during processing
+        # Temporary dictionary to track holdings during processing
+        holdings = {}
 
+        # Get Ticker, Action, Price, and num shares for each row in the dataframe
         for _, row in df.iterrows():
             symbol = row["Symbol"]
             action = row["Action"]
@@ -186,9 +193,12 @@ class Account:
             if symbol not in holdings:
                 holdings[symbol] = {"total_shares": 0, "total_cost": 0}
 
+            # Do everything for BUY action
             if action == "BUY":
                 holdings[symbol]["total_shares"] += shares
                 holdings[symbol]["total_cost"] += shares * price
+
+            # Do everything for SELL action
             elif action == "SELL" and holdings[symbol]["total_shares"] > 0:
                 avg_price = holdings[symbol]["total_cost"] / holdings[symbol]["total_shares"]
                 holdings[symbol]["total_shares"] -= shares
@@ -196,9 +206,12 @@ class Account:
 
         # Generate summary
         summary = []
+
+        # Loop through each stock symbol and data in holdings dictionary
         for symbol, data in holdings.items():
             total_shares = data["total_shares"]
 
+            # Only do calculations if shares are owned
             if total_shares > 0:
                 avg_purchase_price = round(data["total_cost"] / total_shares, 2)
                 current_price = round(self.get_current_price(symbol), 2)
@@ -207,15 +220,15 @@ class Account:
 
                 summary.append([symbol, total_shares, current_price, total_value, avg_purchase_price, unrealized_pnl])
 
-        # Convert to DataFrame
-        summary_df = pd.DataFrame(summary,
-                                  columns=["Symbol", "Total Shares", "Current Price", "Total Value", "Avg Purchase Price",
-                                           "Unrealized P/L"])
+        # Convert to dataframe
+        summary_df = pd.DataFrame(summary, columns=["Symbol", "Total Shares", "Current Price", "Total Value",
+                                                    "Avg Purchase Price", "Unrealized P/L"])
 
         # Add a row for the totals
         total_value_sum = round(summary_df["Total Value"].sum(), 2)
         unrealized_pnl_sum = round(summary_df["Unrealized P/L"].sum(), 2)
 
+        # Set to - since no values
         summary_df.loc[len(summary_df)] = ["Summary", "-", "-", total_value_sum, "-", unrealized_pnl_sum]
 
         # Set pandas to display all columns
@@ -226,7 +239,7 @@ class Account:
         # Set the Symbol column as the index
         summary_df.set_index("Symbol", inplace=True)
 
-        # Remove the name of the index ("Symbol")
+        # Remove the name of the index "Symbol"
         summary_df.rename_axis(None, inplace=True)
 
         return summary_df
@@ -235,38 +248,36 @@ class Account:
         """Get yser input and print account holdings information accordingly."""
 
         while True:
-
             response = input('Do you want to display "All", "Summary", "Single", or "Exit"? ').strip().upper()
-
             if response == 'ALL':
                 print("\n")
                 self.print_all_holdings()
                 print("\n")
-
             elif response == 'SUMMARY':
                 print("\n")
                 self.print_account_summary()
                 print("\n")
-
             elif response == 'SINGLE':
                 print("\n")
                 self.print_specific_holding()
                 print("\n")
-
             elif response == 'EXIT':
                 break
-
             else:
                 print('Invalid input. Please try again.')
 
     def print_all_holdings(self):
+        """Print the dataframe created by holdings()."""
         print(self.holdings())
 
     def print_account_summary(self):
+        """Print the last line of the dataframe created by holdings(). """
         df = self.holdings()
         print(pd.concat([df.head(0), df.tail(1)]))
 
     def print_specific_holding(self):
+        """Print the line in dataframe according to ticker."""
+
         df = self.holdings()
         symbol = input("Enter ticker to view data for: ").strip().upper()
         try:
@@ -274,9 +285,8 @@ class Account:
         except KeyError:
             print(f"Error: {symbol} not found in holdings.")
 
-
     def plot_holdings_pie_chart(self):
-        """stuff here"""
+        """Create pie chart based on current holdings."""
 
         print("Loading your plot...")
 
@@ -305,13 +315,12 @@ class Account:
         plt.show()
 
     def net_investment(self):
-        """
-        This function reads in the csv file with all trades to date, and
-        calculates the amount of money invested at every date a new transaction occurs.
-        """
+        """ This function reads in the csv file with all trades to date, and calculates the amount of money
+        invested at every date a new transaction occurs."""
 
         # Use  account object to get CSV file name
         csv_file = f"{self.account_name}_trades.csv"
+
         # Read CSV file
         trades = pd.read_csv(csv_file, header=None, names=["Type", "Symbol", "Price", "Shares", "Date"])
         trades["Date"] = pd.to_datetime(trades["Date"])
@@ -432,7 +441,7 @@ class Account:
         return portfolio_df[["Date", "Total Portfolio Value"]]
 
     def plot_combined(self):
-        """ Plots both net investement and total portfolio value on the same graph. """
+        """ Plots both net investment and total portfolio value on the same graph. """
 
         print("Loading your plot...")
 
@@ -444,14 +453,15 @@ class Account:
 
         plt.ion()
 
-        plt.figure(figsize=(10, 6))  # Adjust these values if needed
+        plt.figure(figsize=(10, 6))
 
-        # Plot net investement
-        plt.plot(merged_df["Date"], merged_df["Net Investment"], label="Net Investment", linestyle="--", color="black")
+        # Plot net investment
+        plt.plot(merged_df["Date"], merged_df["Net Investment"], label="Net Investment", linestyle="--",
+                 color="black")
 
         # Plot total portfolio value
-        plt.plot(merged_df["Date"], merged_df["Total Portfolio Value"], label="Total Portfolio Value", linestyle="-",
-                 color="blue")
+        plt.plot(merged_df["Date"], merged_df["Total Portfolio Value"], label="Total Portfolio Value",
+                 linestyle="-", color="blue")
 
         # Formatting
         plt.xlabel("Date")
