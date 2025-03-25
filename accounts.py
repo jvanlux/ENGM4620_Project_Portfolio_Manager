@@ -466,7 +466,6 @@ class Account:
         """Fetch real-time stock prices from yfinance."""
 
         # Get current price using yfinance API
-
         try:
             stock = yf.Ticker(symbol)
             return stock.history(period="1d")["Close"].iloc[-1]
