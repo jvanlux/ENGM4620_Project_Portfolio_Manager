@@ -228,12 +228,12 @@ class Account:
         summary_df.set_index("Symbol", inplace=True)
 
         # Remove the name of the index "Symbol"
-        summary_df.rename_axis(None, inplace=True)
+        summary_df.rename_axis(index=None, inplace=True)
 
         return summary_df
 
     def display_account_holdings(self):
-        """Get yser input and print account holdings information accordingly."""
+        """Get user input and print account holdings information accordingly."""
 
         while True:
             response = input('Do you want to display "All", "Summary", "Single", or "Exit"? ').strip().upper()
@@ -295,8 +295,7 @@ class Account:
         fig, ax = plt.subplots(figsize=(8, 8))
         wedges, texts, autotexts = ax.pie(
             sizes, labels=labels, autopct="%1.1f%%", startangle=140, pctdistance=0.85,
-            colors=plt.cm.Paired.colors, wedgeprops={"edgecolor": "black"}
-        )
+            colors=plt.cm.Paired.colors, wedgeprops={"edgecolor": "black"})
 
         ax.set_title(f"Portfolio Distribution\nTotal Value: ${total_value:,.2f}")
         ax.axis("equal")
@@ -322,9 +321,9 @@ class Account:
         # Process transactions
         for _, row in trades.iterrows():
             if row["Type"] == "BUY":
-                balance += row["Price"] * row["Shares"]  # Buying increases balance
+                balance += row["Price"] * row["Shares"]
             elif row["Type"] == "SELL":
-                balance -= row["Price"] * row["Shares"]  # Selling decreases balance
+                balance -= row["Price"] * row["Shares"]
 
             dates.append(row["Date"])
             balances.append(balance)
@@ -373,7 +372,7 @@ class Account:
 
         # Process each stock separately and track its portfolio value
         for symbol in unique_symbols:
-            stock_df = trades[trades['Symbol'] == symbol]  # Filter trades for current stock
+            stock_df = trades[trades['Symbol'] == symbol]
             close_data = all_stock_data[symbol]
             shares_owned = 0
 
@@ -386,7 +385,7 @@ class Account:
                 if date in close_data.index:
                     close_price = close_data.loc[date].item()
                 else:
-                    # If no data for that date ie. weekend, holiday
+                    # If no data for that date i.e. weekend, holiday
                     close_price = last_known_value
 
                 # If there was a trade on this date, update shares_owned
