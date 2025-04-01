@@ -18,7 +18,7 @@ def main():
     {Fore.LIGHTGREEN_EX}========================================================================
     
     {Fore.LIGHTGREEN_EX}                      PORTFOLIO MANAGEMENT TOOL
-    {Fore.LIGHTGREEN_EX}Developed by: James McIntosh (B00833105) & John VanLuxemborg (B00892614)
+    {Fore.LIGHTGREEN_EX}Developed by: James McIntosh (B00833105) & John Vanluxemborg (B00892614)
     
     {Fore.LIGHTGREEN_EX}       For on the code please see the Github repository here
          https://github.com/jvanlux/ENGM4620_Project_Portfolio_Manager 
