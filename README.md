@@ -40,7 +40,7 @@ colorama~=0.4.6
 ## How to Use
 
 ### 1. Running the Program
-To run the program, simply execute the Python script:
+To run the program, simply open command prompt and navigate to the directory where the scripts are saved and execute the Python script by running:
 
 ```
 python main.py
